@@ -32,21 +32,27 @@ export default function ActiveGame({ gameId, onExit }) {
     } catch (e) { console.error(e); }
   }
 
-  const handleThrow = async (point) => {
+  const handleThrow = async (point, forcedMultiplier = null) => {
     if (sending || !game) return;
 
-    // Optimistic UI updates could go here, but for now wait for server
     setSending(true);
     try {
       const currentPlayerIndex = game.current_turn.player_index;
       const currentUserId = game.players[currentPlayerIndex].user_id;
 
-      // Handle special inputs 'Single', 'Double', 'Triple' buttons if exist separately?
-      // No, we have toggle states via `multiplier` state.
+      // Use forced multiplier if provided, otherwise use the state multiplier
+      let realMultiplier = forcedMultiplier !== null ? forcedMultiplier : multiplier;
 
-      const realMultiplier = (point === 25 || point === 0) ? (multiplier > 1 ? (point === 25 ? 2 : 1) : 1) : multiplier;
-      // Bull (25) can be Double (50), but not Triple.
-      // 0 (Miss) is always 1x0.
+      // Special handling for bull and miss if no forced multiplier
+      if (forcedMultiplier === null) {
+        if (point === 25) {
+          // Bull can be single (25) or double (50), but not triple
+          realMultiplier = multiplier > 1 ? 2 : 1;
+        } else if (point === 0) {
+          // Miss is always 1x0
+          realMultiplier = 1;
+        }
+      }
 
       await api.sendThrow(game.id, currentUserId, point, realMultiplier);
 
@@ -94,7 +100,7 @@ export default function ActiveGame({ gameId, onExit }) {
                 <div className="text-sm opacity-80">Sets: {p.sets_won}</div>
               </div>
               <div className="text-6xl font-black mb-2 text-center">
-                {p.current_points - (isCurrent ? game.current_turn.current_turn_points : 0)}
+                {p.current_points}
               </div>
               {/* Last Throws visualization could go here */}
               {isCurrent && (
@@ -142,10 +148,17 @@ export default function ActiveGame({ gameId, onExit }) {
           ))}
         </div>
 
-        {/* Zero / Bull */}
-        <div className="flex gap-2 max-w-lg mx-auto mt-2">
-          <button onClick={() => handleThrow(0)} className="flex-1 bg-red-900/50 text-red-200 font-bold py-3 rounded-lg hover:bg-red-900/70">MISS</button>
-          <button onClick={() => handleThrow(25)} className="flex-1 bg-green-900/50 text-green-200 font-bold py-3 rounded-lg hover:bg-green-900/70">BULL</button>
+        {/* Zero / Bull / Bulls Eye */}
+        <div className="grid grid-cols-3 gap-2 max-w-lg mx-auto mt-2">
+          <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold py-3 rounded-lg hover:bg-red-900/70">MISS</button>
+          <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold py-3 rounded-lg hover:bg-green-700/70">
+            <div className="text-xs opacity-75">25</div>
+            <div>BULL</div>
+          </button>
+          <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30">
+            <div className="text-xs opacity-75">50</div>
+            <div>BULLS EYE</div>
+          </button>
         </div>
       </div>
 

@@ -70,8 +70,14 @@ func (e *Engine) ProcessThrow(game *models.Game, userID int, points int, multipl
 
 	if isBust {
 		// On bust: score reverts to beginning of turn, turn ends
+		// Calculate the score at the start of this turn
+		// Current points + all turn points - this throw = turn start score
+		turnStartScore := currentPlayer.CurrentPoints + (game.CurrentTurn.CurrentTurnPoints - realPoints)
+
 		throw.Valid = false
-		throw.ScoreAfter = scoreBeforeThrow
+		throw.ScoreAfter = turnStartScore
+		currentPlayer.CurrentPoints = turnStartScore
+
 		// Reset turn points and move to next player
 		game.CurrentTurn.CurrentTurnPoints = 0
 		e.nextPlayer(game)

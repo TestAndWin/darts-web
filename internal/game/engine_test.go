@@ -79,6 +79,65 @@ func TestProcessThrow_Bust(t *testing.T) {
 	}
 }
 
+func TestProcessThrow_BustAfterMultipleThrows(t *testing.T) {
+	engine := NewEngine()
+
+	game := &models.Game{
+		ID:     1,
+		Status: models.GameStatusActive,
+		Settings: models.GameSettings{
+			TotalPoints: 501,
+			BestOfSets:  1,
+		},
+		Players: []models.GamePlayer{
+			{UserID: 1, Order: 0, CurrentPoints: 100, SetsWon: 0},
+			{UserID: 2, Order: 1, CurrentPoints: 200, SetsWon: 0},
+		},
+		CurrentTurn: &models.TurnStatus{
+			PlayerIndex:       0,
+			ThrowNumber:       0,
+			CurrentTurnPoints: 0,
+		},
+	}
+
+	// First throw: Triple 20 (60 points) - should leave 40 points
+	throw1, err := engine.ProcessThrow(game, 1, 20, 3)
+	if err != nil {
+		t.Fatalf("ProcessThrow() error = %v", err)
+	}
+	if !throw1.Valid {
+		t.Error("Expected first throw to be valid")
+	}
+	if game.Players[0].CurrentPoints != 40 {
+		t.Errorf("Expected 40 points after first throw, got %d", game.Players[0].CurrentPoints)
+	}
+
+	// Second throw: Triple 20 (60 points) - should bust (40 - 60 = -20)
+	throw2, err := engine.ProcessThrow(game, 1, 20, 3)
+	if err != nil {
+		t.Fatalf("ProcessThrow() error = %v", err)
+	}
+
+	if throw2.Valid {
+		t.Error("Expected bust throw to be invalid")
+	}
+
+	// Points should revert to 100 (start of turn), not 40
+	if game.Players[0].CurrentPoints != 100 {
+		t.Errorf("Expected points to revert to 100 after bust, got %d", game.Players[0].CurrentPoints)
+	}
+
+	// Turn should have moved to next player
+	if game.CurrentTurn.PlayerIndex != 1 {
+		t.Errorf("Expected player index to be 1 after bust, got %d", game.CurrentTurn.PlayerIndex)
+	}
+
+	// Turn points should be reset
+	if game.CurrentTurn.CurrentTurnPoints != 0 {
+		t.Errorf("Expected turn points to be reset to 0, got %d", game.CurrentTurn.CurrentTurnPoints)
+	}
+}
+
 func TestProcessThrow_Checkout(t *testing.T) {
 	engine := NewEngine()
 
