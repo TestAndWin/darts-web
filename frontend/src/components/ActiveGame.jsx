@@ -12,8 +12,9 @@ export default function ActiveGame({ gameId, onExit }) {
     loadGame();
     loadUsers();
 
-    // Polling for simple live updates (can be replaced by SSE later)
-    const interval = setInterval(loadGame, 1000);
+    // Polling for simple live updates (reduced frequency for better performance)
+    // TODO: Replace with SSE or WebSocket for production
+    const interval = setInterval(loadGame, 3000);
     return () => clearInterval(interval);
   }, [gameId]); // Refresh if ID changes
 

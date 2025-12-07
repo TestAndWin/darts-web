@@ -4,6 +4,7 @@ import './App.css'
 import GameSetup from './components/GameSetup'
 import ActiveGame from './components/ActiveGame'
 import UserStats from './components/UserStats'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   const [view, setView] = useState('home'); // home, setup, game, stats
@@ -23,17 +24,18 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
-      {/* Navbar/Header */}
-      <nav className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={handleExit}>
-          <div className="w-8 h-8 bg-darts-blue rounded-full flex items-center justify-center text-white font-bold">D</div>
-          <span className="font-bold text-xl tracking-tight text-slate-800">Darts Web</span>
-        </div>
-      </nav>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
+        {/* Navbar/Header */}
+        <nav className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={handleExit}>
+            <div className="w-8 h-8 bg-darts-blue rounded-full flex items-center justify-center text-white font-bold">D</div>
+            <span className="font-bold text-xl tracking-tight text-slate-800">Darts Web</span>
+          </div>
+        </nav>
 
-      {/* Main Content */}
-      <main className="p-4 md:p-8">
+        {/* Main Content */}
+        <main className="p-4 md:p-8">
         {view === 'home' && (
           <div className="max-w-4xl mx-auto mt-20 text-center">
             <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
@@ -67,6 +69,7 @@ function App() {
         )}
       </main>
     </div>
+    </ErrorBoundary>
   )
 }
 

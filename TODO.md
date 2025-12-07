@@ -1,0 +1,4 @@
+- Keine Double-Out Regel implementiert >> Als Option beim Spielstart 
+- Anzahl Legs pro Set >> Als Option beim Spielstart
+- readme.md aktualisieren
+- .gitignore aktualisieren

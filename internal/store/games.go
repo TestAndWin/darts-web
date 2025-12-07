@@ -60,8 +60,8 @@ func (s *Store) GetGame(id int) (*models.Game, error) {
 	// Create struct to hold turn status if it's nil
 	g.CurrentTurn = &models.TurnStatus{}
 
-	err := s.db.QueryRow(`SELECT id, status, total_points, best_of_sets, winner_id, current_player_index, current_throw_number, created_at FROM games WHERE id = ?`, id).
-		Scan(&g.ID, &statusStr, &g.Settings.TotalPoints, &g.Settings.BestOfSets, &g.WinnerID, &g.CurrentTurn.PlayerIndex, &g.CurrentTurn.ThrowNumber, &g.CreatedAt)
+	err := s.db.QueryRow(`SELECT id, status, total_points, best_of_sets, winner_id, current_player_index, current_throw_number, current_turn_points, created_at FROM games WHERE id = ?`, id).
+		Scan(&g.ID, &statusStr, &g.Settings.TotalPoints, &g.Settings.BestOfSets, &g.WinnerID, &g.CurrentTurn.PlayerIndex, &g.CurrentTurn.ThrowNumber, &g.CurrentTurn.CurrentTurnPoints, &g.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil // Not found
 	}
@@ -95,20 +95,28 @@ func (s *Store) SaveThrow(t *models.Throw) error {
 }
 
 func (s *Store) UpdateGame(g *models.Game) error {
+	// Use transaction to ensure atomic updates
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	// Update Game Status
-	_, err := s.db.Exec(`UPDATE games SET status = ?, winner_id = ?, current_player_index = ?, current_throw_number = ? WHERE id = ?`,
-		g.Status, g.WinnerID, g.CurrentTurn.PlayerIndex, g.CurrentTurn.ThrowNumber, g.ID)
+	_, err = tx.Exec(`UPDATE games SET status = ?, winner_id = ?, current_player_index = ?, current_throw_number = ?, current_turn_points = ? WHERE id = ?`,
+		g.Status, g.WinnerID, g.CurrentTurn.PlayerIndex, g.CurrentTurn.ThrowNumber, g.CurrentTurn.CurrentTurnPoints, g.ID)
 	if err != nil {
 		return err
 	}
 
 	// Update Players
 	for _, p := range g.Players {
-		_, err := s.db.Exec(`UPDATE game_players SET sets_won = ?, current_points = ? WHERE game_id = ? AND user_id = ?`,
+		_, err := tx.Exec(`UPDATE game_players SET sets_won = ?, current_points = ? WHERE game_id = ? AND user_id = ?`,
 			p.SetsWon, p.CurrentPoints, g.ID, p.UserID)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+
+	return tx.Commit()
 }

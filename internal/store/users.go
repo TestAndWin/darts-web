@@ -7,19 +7,16 @@ import (
 )
 
 func (s *Store) CreateUser(name string) (*models.User, error) {
-	// First check if exists to avoid unique constraint error
-	// (SQLite UPSERT or check-then-insert)
-	var existing models.User
-	err := s.db.QueryRow(`SELECT id, name, created_at FROM users WHERE name = ?`, name).Scan(&existing.ID, &existing.Name, &existing.CreatedAt)
-	if err == nil {
-		return &existing, nil
-	}
-
-	query := `INSERT INTO users (name) VALUES (?) RETURNING id, created_at`
+	// Use INSERT OR IGNORE with RETURNING to handle duplicates atomically
+	// This is more efficient than separate SELECT + INSERT
+	query := `
+		INSERT INTO users (name)
+		VALUES (?)
+		ON CONFLICT(name) DO UPDATE SET name=name
+		RETURNING id, name, created_at
+	`
 	var user models.User
-	user.Name = name
-
-	err = s.db.QueryRow(query, name).Scan(&user.ID, &user.CreatedAt)
+	err := s.db.QueryRow(query, name).Scan(&user.ID, &user.Name, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}

@@ -45,10 +45,11 @@ func (s *Store) initSchema() error {
 		winner_id INTEGER,
 		current_player_index INTEGER DEFAULT 0,
 		current_throw_number INTEGER DEFAULT 0,
+		current_turn_points INTEGER DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (winner_id) REFERENCES users(id)
 	);
-	
+
 	CREATE TABLE IF NOT EXISTS game_players (
 		game_id INTEGER NOT NULL,
 		user_id INTEGER NOT NULL,
@@ -71,6 +72,14 @@ func (s *Store) initSchema() error {
 		FOREIGN KEY (game_id) REFERENCES games(id),
 		FOREIGN KEY (user_id) REFERENCES users(id)
 	);
+
+	-- Create indexes for better query performance
+	CREATE INDEX IF NOT EXISTS idx_games_status ON games(status);
+	CREATE INDEX IF NOT EXISTS idx_games_winner ON games(winner_id);
+	CREATE INDEX IF NOT EXISTS idx_game_players_user ON game_players(user_id);
+	CREATE INDEX IF NOT EXISTS idx_throws_game ON throws(game_id);
+	CREATE INDEX IF NOT EXISTS idx_throws_user ON throws(user_id);
+	CREATE INDEX IF NOT EXISTS idx_throws_created ON throws(created_at);
 	`
 
 	_, err := s.db.Exec(schema)

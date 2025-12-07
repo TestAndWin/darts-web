@@ -34,8 +34,9 @@ export default function GameSetup({ onGameStarted }) {
         // Create
         try {
           const newUser = await api.createUser(name);
-          currentUsers = [...currentUsers, newUser]; // Update local list
-          setUsers(currentUsers);
+          const updatedUsers = [...currentUsers, newUser];
+          currentUsers = updatedUsers; // Update local reference
+          setUsers(updatedUsers);
           return newUser;
         } catch (e) { console.error("Failed to create user from URL", e); return null; }
       };
