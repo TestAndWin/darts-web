@@ -120,6 +120,7 @@ func (h *Handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		TotalPoints int   `json:"total_points"`
 		BestOf      int   `json:"best_of"`
+		DoubleOut   bool  `json:"double_out"`
 		PlayerIDs   []int `json:"player_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -141,7 +142,7 @@ func (h *Handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g, err := h.store.CreateGame(req.TotalPoints, req.BestOf, req.PlayerIDs)
+	g, err := h.store.CreateGame(req.TotalPoints, req.BestOf, req.DoubleOut, req.PlayerIDs)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed to create game")
 		return

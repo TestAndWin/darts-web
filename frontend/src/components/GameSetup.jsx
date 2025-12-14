@@ -5,7 +5,7 @@ export default function GameSetup({ onGameStarted }) {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [newUserName, setNewUserName] = useState('');
-  const [settings, setSettings] = useState({ points: 501, sets: 3 });
+  const [settings, setSettings] = useState({ points: 301, sets: 3, doubleOut: false });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function GameSetup({ onGameStarted }) {
     if (selectedUsers.length < 1) return;
     setLoading(true);
     try {
-      const game = await api.createGame(settings.points, settings.sets, selectedUsers);
+      const game = await api.createGame(settings.points, settings.sets, selectedUsers, settings.doubleOut);
       onGameStarted(game);
     } catch (e) {
       alert('Failed to start game');
@@ -100,7 +100,7 @@ export default function GameSetup({ onGameStarted }) {
       <h2 className="text-2xl font-bold text-slate-800 mb-6">New Game Setup</h2>
 
       {/* Settings */}
-      <div className="mb-8 grid grid-cols-2 gap-4">
+      <div className="mb-8 grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Points</label>
           <div className="flex gap-2">
@@ -125,6 +125,23 @@ export default function GameSetup({ onGameStarted }) {
                 className={`flex-1 py-2 rounded-lg font-semibold border ${settings.sets === s ? 'bg-darts-blue text-white border-darts-blue' : 'text-slate-600 border-slate-300'}`}
               >
                 {s}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Double Out</label>
+          <div className="flex gap-2">
+            {[
+              { value: false, label: 'No' },
+              { value: true, label: 'Yes' }
+            ].map(opt => (
+              <button
+                key={opt.value.toString()}
+                onClick={() => setSettings({ ...settings, doubleOut: opt.value })}
+                className={`flex-1 py-2 rounded-lg font-semibold border ${settings.doubleOut === opt.value ? 'bg-darts-blue text-white border-darts-blue' : 'text-slate-600 border-slate-300'}`}
+              >
+                {opt.label}
               </button>
             ))}
           </div>

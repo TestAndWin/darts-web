@@ -6,7 +6,7 @@ import (
 	"github.com/michaelschlottmann/darts-web/internal/models"
 )
 
-func (s *Store) CreateGame(totalPoints, bestOf int, playerIDs []int) (*models.Game, error) {
+func (s *Store) CreateGame(totalPoints, bestOf int, doubleOut bool, playerIDs []int) (*models.Game, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
@@ -14,8 +14,12 @@ func (s *Store) CreateGame(totalPoints, bestOf int, playerIDs []int) (*models.Ga
 	defer tx.Rollback()
 
 	// Create Game
-	res, err := tx.Exec(`INSERT INTO games (status, total_points, best_of_sets, current_player_index, current_throw_number) VALUES (?, ?, ?, 0, 0)`,
-		models.GameStatusPending, totalPoints, bestOf)
+	doubleOutInt := 0
+	if doubleOut {
+		doubleOutInt = 1
+	}
+	res, err := tx.Exec(`INSERT INTO games (status, total_points, best_of_sets, double_out, current_player_index, current_throw_number) VALUES (?, ?, ?, ?, 0, 0)`,
+		models.GameStatusPending, totalPoints, bestOf, doubleOutInt)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +47,7 @@ func (s *Store) CreateGame(totalPoints, bestOf int, playerIDs []int) (*models.Ga
 	return &models.Game{
 		ID:          int(gameID),
 		Status:      models.GameStatusPending,
-		Settings:    models.GameSettings{TotalPoints: totalPoints, BestOfSets: bestOf},
+		Settings:    models.GameSettings{TotalPoints: totalPoints, BestOfSets: bestOf, DoubleOut: doubleOut},
 		Players:     players,
 		CurrentTurn: &models.TurnStatus{PlayerIndex: 0, ThrowNumber: 0},
 	}, nil
@@ -56,12 +60,13 @@ func (s *Store) GetGame(id int) (*models.Game, error) {
 	// Game
 	var g models.Game
 	var statusStr string
+	var doubleOutInt int
 
 	// Create struct to hold turn status if it's nil
 	g.CurrentTurn = &models.TurnStatus{}
 
-	err := s.db.QueryRow(`SELECT id, status, total_points, best_of_sets, winner_id, current_player_index, current_throw_number, current_turn_points, created_at FROM games WHERE id = ?`, id).
-		Scan(&g.ID, &statusStr, &g.Settings.TotalPoints, &g.Settings.BestOfSets, &g.WinnerID, &g.CurrentTurn.PlayerIndex, &g.CurrentTurn.ThrowNumber, &g.CurrentTurn.CurrentTurnPoints, &g.CreatedAt)
+	err := s.db.QueryRow(`SELECT id, status, total_points, best_of_sets, double_out, winner_id, current_player_index, current_throw_number, current_turn_points, created_at FROM games WHERE id = ?`, id).
+		Scan(&g.ID, &statusStr, &g.Settings.TotalPoints, &g.Settings.BestOfSets, &doubleOutInt, &g.WinnerID, &g.CurrentTurn.PlayerIndex, &g.CurrentTurn.ThrowNumber, &g.CurrentTurn.CurrentTurnPoints, &g.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil // Not found
 	}
@@ -69,6 +74,7 @@ func (s *Store) GetGame(id int) (*models.Game, error) {
 		return nil, err
 	}
 	g.Status = models.GameStatus(statusStr)
+	g.Settings.DoubleOut = doubleOutInt != 0
 
 	// Players
 	rows, err := s.db.Query(`SELECT user_id, player_order, sets_won, current_points FROM game_players WHERE game_id = ? ORDER BY player_order`, id)

@@ -1,8 +1,10 @@
-- Keine Double-Out Regel implementiert >> Als Option beim Spielstart 
 - Anzahl Legs pro Set >> Als Option beim Spielstart
 - readme.md aktualisieren
 - TODO.md und Readme aktualisieren und zusammenfassen
-
+- werden die bei .env.example benutzt?
+- Im Spiel anzeigen, ob Double Out Regel aktiviert ist.
+- Game Finished! Statistik für die Runde anzeigen
+Neue Version, vorher die DB auf dem Server löschen.
 
 ## Installation 
 ### Minikube auf Ubunto 

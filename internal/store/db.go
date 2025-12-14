@@ -42,6 +42,7 @@ func (s *Store) initSchema() error {
 		status TEXT NOT NULL,
 		total_points INTEGER NOT NULL,
 		best_of_sets INTEGER NOT NULL,
+		double_out INTEGER DEFAULT 0,
 		winner_id INTEGER,
 		current_player_index INTEGER DEFAULT 0,
 		current_throw_number INTEGER DEFAULT 0,

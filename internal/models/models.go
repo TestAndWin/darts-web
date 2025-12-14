@@ -28,8 +28,9 @@ type Game struct {
 }
 
 type GameSettings struct {
-	TotalPoints int `json:"total_points"` // 301, 501
-	BestOfSets  int `json:"best_of_sets"` // 1, 3, 5
+	TotalPoints int  `json:"total_points"` // 301, 501
+	BestOfSets  int  `json:"best_of_sets"` // 1, 3, 5
+	DoubleOut   bool `json:"double_out"`   // Require double to finish
 }
 
 type GamePlayer struct {

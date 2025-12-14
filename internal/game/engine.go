@@ -56,16 +56,24 @@ func (e *Engine) ProcessThrow(game *models.Game, userID int, points int, multipl
 
 	remaining := currentPlayer.CurrentPoints - realPoints
 
-	// Bust check: remaining < 0 or remaining == 1 (impossible to checkout)
+	// Bust check: remaining < 0 or (remaining == 1 and double-out is enabled)
+	// When double-out is disabled, landing on 1 is valid (can checkout with single 1)
 	isBust := false
-	if remaining < 0 || remaining == 1 {
+	if remaining < 0 || (remaining == 1 && game.Settings.DoubleOut) {
 		isBust = true
 	} else if remaining == 0 {
-		// Checkout - player wins the leg/set
-		currentPlayer.CurrentPoints = 0
-		throw.ScoreAfter = 0
-		e.handleWinSet(game, currentPlayer)
-		return throw, nil
+		// Check double-out requirement
+		if game.Settings.DoubleOut && multiplier != 2 {
+			// Must finish on a double when double-out is enabled
+			isBust = true
+			// Fall through to bust handling
+		} else {
+			// Checkout - player wins the leg/set
+			currentPlayer.CurrentPoints = 0
+			throw.ScoreAfter = 0
+			e.handleWinSet(game, currentPlayer)
+			return throw, nil
+		}
 	}
 
 	if isBust {

@@ -31,13 +31,14 @@ export const api = {
     }
   },
 
-  createGame: async (totalPoints, bestOf, playerIds) => {
+  createGame: async (totalPoints, bestOf, playerIds, doubleOut = false) => {
     const res = await fetch(`${API_URL}/games`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         total_points: totalPoints,
         best_of: bestOf,
+        double_out: doubleOut,
         player_ids: playerIds
       }),
     });
