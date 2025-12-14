@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -82,10 +84,35 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.store.CreateUser(req.Name)
 	if err != nil {
+		if errors.Is(err, store.ErrDuplicateUsername) {
+			writeError(w, http.StatusConflict, "Username already exists")
+			return
+		}
 		writeError(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
 	writeJSON(w, http.StatusCreated, user)
+}
+
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	err = h.store.DeleteUser(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "Failed to delete user")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // Game Handlers

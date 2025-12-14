@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+// Use relative path by default to work with BASE_PATH in production
+// In development, Vite proxy or explicit VITE_API_URL can override this
+const API_URL = import.meta.env.VITE_API_URL || '/darts/api';
 
 export const api = {
   getUsers: async () => {
@@ -12,7 +14,21 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
     });
-    return res.json();
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to create user');
+    }
+    return data;
+  },
+
+  deleteUser: async (userId) => {
+    const res = await fetch(`${API_URL}/users/${userId}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to delete user');
+    }
   },
 
   createGame: async (totalPoints, bestOf, playerIds) => {

@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-darts-blue: #186aa1;
+  --color-darts-blue-light: #c0eaf5;
+  --color-darts-gold: #ffd700;
+}
 
 body {
   @apply bg-slate-50 text-slate-900;

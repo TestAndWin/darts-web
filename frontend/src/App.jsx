@@ -68,6 +68,7 @@ function App() {
           <UserStats onBack={handleExit} />
         )}
       </main>
+
     </div>
     </ErrorBoundary>
   )

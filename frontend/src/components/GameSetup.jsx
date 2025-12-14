@@ -38,7 +38,10 @@ export default function GameSetup({ onGameStarted }) {
           currentUsers = updatedUsers; // Update local reference
           setUsers(updatedUsers);
           return newUser;
-        } catch (e) { console.error("Failed to create user from URL", e); return null; }
+        } catch (e) {
+          console.error("Failed to create user from URL:", e.message);
+          return null;
+        }
       };
 
       if (p1Name) {
@@ -66,7 +69,7 @@ export default function GameSetup({ onGameStarted }) {
       setUsers([...users, user]);
       setNewUserName('');
     } catch (err) {
-      alert('Failed to create user');
+      alert(err.message || 'Failed to create user');
     }
   };
 

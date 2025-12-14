@@ -14,14 +14,23 @@ import (
 )
 
 func main() {
-	// Configuration from environment
-	port := getEnv("PORT", "8080")
-	dbPath := getEnv("DB_PATH", "./darts.db")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./darts.db"
+	}
+
+	basePath := os.Getenv("BASE_PATH") // e.g., "/darts"
 	corsOrigin := getEnv("CORS_ORIGIN", "*")
 
 	log.Printf("Starting Darts Web Server")
 	log.Printf("Port: %s", port)
 	log.Printf("Database: %s", dbPath)
+	log.Printf("Base Path: %s", basePath)
 
 	// Database Init
 	db, err := store.NewStore(dbPath)
@@ -35,20 +44,38 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// API Routes
-	mux.HandleFunc("GET /api/users", h.ListUsers)
-	mux.HandleFunc("POST /api/users", h.CreateUser)
-	mux.HandleFunc("POST /api/games", h.CreateGame)
-	mux.HandleFunc("GET /api/games/{id}", h.GetGame)
-	mux.HandleFunc("POST /api/games/{id}/throw", h.HandleThrow)
-	mux.HandleFunc("GET /api/users/{id}/stats", h.GetUserStats)
+	// API Routes (ensure they work with or without prefix)
+	apiPrefix := basePath + "/api"
+	mux.HandleFunc("GET "+apiPrefix+"/users", h.ListUsers)
+	mux.HandleFunc("POST "+apiPrefix+"/users", h.CreateUser)
+	mux.HandleFunc("DELETE "+apiPrefix+"/users/{id}", h.DeleteUser)
+	mux.HandleFunc("POST "+apiPrefix+"/games", h.CreateGame)
+	mux.HandleFunc("GET "+apiPrefix+"/games/{id}", h.GetGame)
+	mux.HandleFunc("POST "+apiPrefix+"/games/{id}/throw", h.HandleThrow)
+	mux.HandleFunc("GET "+apiPrefix+"/users/{id}/stats", h.GetUserStats)
 
 	// Health Check
-	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET "+apiPrefix+"/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
 	})
+
+	// Static Files Serving
+	// We serve files from "dist" directory which will be copied into the container
+	fs := http.FileServer(http.Dir("./dist"))
+
+	// Strip the prefix if one is set, so /darts/assets/x.js -> /assets/x.js
+	var fileHandler http.Handler
+	if basePath != "" {
+		fileHandler = http.StripPrefix(basePath, fs)
+	} else {
+		fileHandler = fs
+	}
+
+	// Handle root and everything else with file server (SPA support would need more logic ideally,
+	// but for now, we just serve files. Accessing /darts/ should serve index.html)
+	mux.Handle(basePath+"/", fileHandler)
 
 	// Add CORS middleware
 	handler := enableCORS(mux, corsOrigin)

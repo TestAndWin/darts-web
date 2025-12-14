@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCreateUser_Upsert(t *testing.T) {
+func TestCreateUser_DuplicateRejection(t *testing.T) {
 	// Create temporary database
 	dbPath := "./test_users.db"
 	defer os.Remove(dbPath)
@@ -26,14 +26,14 @@ func TestCreateUser_Upsert(t *testing.T) {
 		t.Errorf("Expected name 'TestPlayer', got %s", user1.Name)
 	}
 
-	// Try to create same user again (should return existing)
+	// Try to create same user again (should return error)
 	user2, err := store.CreateUser("TestPlayer")
-	if err != nil {
-		t.Fatalf("Failed to create/get user: %v", err)
+	if err != ErrDuplicateUsername {
+		t.Errorf("Expected ErrDuplicateUsername, got %v", err)
 	}
 
-	if user1.ID != user2.ID {
-		t.Errorf("Expected same user ID, got %d and %d", user1.ID, user2.ID)
+	if user2 != nil {
+		t.Errorf("Expected nil user on duplicate, got %+v", user2)
 	}
 }
 
@@ -72,5 +72,43 @@ func TestListUsers(t *testing.T) {
 		if user.Name != expectedOrder[i] {
 			t.Errorf("Expected user %d to be %s, got %s", i, expectedOrder[i], user.Name)
 		}
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	dbPath := "./test_delete.db"
+	defer os.Remove(dbPath)
+
+	store, err := NewStore(dbPath)
+	if err != nil {
+		t.Fatalf("Failed to create store: %v", err)
+	}
+	defer store.Close()
+
+	// Create a user
+	user, err := store.CreateUser("TestUser")
+	if err != nil {
+		t.Fatalf("Failed to create user: %v", err)
+	}
+
+	// Delete the user
+	err = store.DeleteUser(user.ID)
+	if err != nil {
+		t.Fatalf("Failed to delete user: %v", err)
+	}
+
+	// Try to get the deleted user
+	deletedUser, err := store.GetUser(user.ID)
+	if err != nil {
+		t.Fatalf("Failed to get user: %v", err)
+	}
+	if deletedUser != nil {
+		t.Errorf("Expected user to be deleted, but got %+v", deletedUser)
+	}
+
+	// Try to delete non-existent user
+	err = store.DeleteUser(9999)
+	if err == nil {
+		t.Errorf("Expected error when deleting non-existent user, got nil")
 	}
 }

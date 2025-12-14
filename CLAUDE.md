@@ -10,7 +10,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Backend
+**IMPORTANT**: This project includes a Makefile for common tasks. Prefer using `make` commands when available.
+
+### Quick Commands (Makefile - Preferred)
+
+```bash
+# Show all available commands
+make help
+
+# Install dependencies
+make deps
+
+# Run tests
+make test
+make test-verbose
+make test-coverage
+
+# Run backend server (http://localhost:8080)
+make run-backend
+
+# Run frontend dev server (http://localhost:5173)
+make run-frontend
+
+# Build for production
+make build-backend
+make build-frontend
+
+# Build and export Docker image (uses VERSION file)
+make build
+make export
+
+# Clean build artifacts
+make clean
+```
+
+### Backend (Manual)
 
 ```bash
 # Run the backend server (default: http://localhost:8080)
@@ -30,7 +64,7 @@ go test ./internal/store
 go build -o darts-server cmd/server/main.go
 ```
 
-### Frontend
+### Frontend (Manual)
 
 ```bash
 # Install dependencies (required after clone)
@@ -49,7 +83,13 @@ npm run lint
 ### Docker
 
 ```bash
-# Build Docker image
+# Build Docker image (via Makefile - recommended)
+make build
+
+# Build and export as tar
+make export
+
+# Or manually
 docker build -t darts-web .
 
 # Run container
@@ -64,6 +104,15 @@ helm install darts-web ./charts/darts-web
 
 # Deploy with raw K8s manifests
 kubectl apply -f k8s/darts-app.yaml
+```
+
+### Versioning
+
+The application version is managed via the `VERSION` file (not `package.json`). To bump the version:
+
+```bash
+echo "1.0.5" > VERSION
+make export
 ```
 
 ## Architecture Overview

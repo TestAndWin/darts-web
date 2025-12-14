@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: darts
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: darts-pvc
+  namespace: darts
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: darts-app
+  namespace: darts
+  labels:
+    app: darts-web
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3  # Behält nur die letzten 3 ReplicaSets
+  selector:
+    matchLabels:
+      app: darts-web
+  template:
+    metadata:
+      labels:
+        app: darts-web
+    spec:
+      containers:
+      - name: darts-web
+        image: darts-app:latest
+        imagePullPolicy: IfNotPresent # Important for local images
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_PATH
+          value: "/data/darts.db"
+        - name: BASE_PATH
+          value: "/darts"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: data-volume
+          mountPath: "/data"
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: darts-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: darts-service
+  namespace: darts
+spec:
+  selector:
+    app: darts-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: darts-ingress
+  namespace: darts
+  # No rewrite-target needed - backend handles /darts prefix natively
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /darts
+        pathType: Prefix
+        backend:
+          service:
+            name: darts-service
+            port:
+              number: 80

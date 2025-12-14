@@ -2,21 +2,33 @@ package store
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/michaelschlottmann/darts-web/internal/models"
 )
 
+var ErrDuplicateUsername = errors.New("username already exists")
+
 func (s *Store) CreateUser(name string) (*models.User, error) {
-	// Use INSERT OR IGNORE with RETURNING to handle duplicates atomically
-	// This is more efficient than separate SELECT + INSERT
+	// First check if user already exists
+	var exists bool
+	checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE name = ?)`
+	err := s.db.QueryRow(checkQuery, name).Scan(&exists)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, ErrDuplicateUsername
+	}
+
+	// Insert new user
 	query := `
 		INSERT INTO users (name)
 		VALUES (?)
-		ON CONFLICT(name) DO UPDATE SET name=name
 		RETURNING id, name, created_at
 	`
 	var user models.User
-	err := s.db.QueryRow(query, name).Scan(&user.ID, &user.Name, &user.CreatedAt)
+	err = s.db.QueryRow(query, name).Scan(&user.ID, &user.Name, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -53,4 +65,23 @@ func (s *Store) GetUser(id int) (*models.User, error) {
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (s *Store) DeleteUser(id int) error {
+	query := `DELETE FROM users WHERE id = ?`
+	result, err := s.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
