@@ -49,10 +49,11 @@ func main() {
 	mux.HandleFunc("GET "+apiPrefix+"/users", h.ListUsers)
 	mux.HandleFunc("POST "+apiPrefix+"/users", h.CreateUser)
 	mux.HandleFunc("DELETE "+apiPrefix+"/users/{id}", h.DeleteUser)
+	mux.HandleFunc("GET "+apiPrefix+"/users/{id}/stats", h.GetUserStats)
 	mux.HandleFunc("POST "+apiPrefix+"/games", h.CreateGame)
+	mux.HandleFunc("GET "+apiPrefix+"/games/{id}/statistics", h.GetGameStatistics)
 	mux.HandleFunc("GET "+apiPrefix+"/games/{id}", h.GetGame)
 	mux.HandleFunc("POST "+apiPrefix+"/games/{id}/throw", h.HandleThrow)
-	mux.HandleFunc("GET "+apiPrefix+"/users/{id}/stats", h.GetUserStats)
 
 	// Health Check
 	mux.HandleFunc("GET "+apiPrefix+"/health", func(w http.ResponseWriter, r *http.Request) {

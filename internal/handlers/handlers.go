@@ -245,3 +245,32 @@ func (h *Handler) GetUserStats(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, stats)
 }
+
+func (h *Handler) GetGameStatistics(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid game ID")
+		return
+	}
+
+	// Verify game exists and is finished
+	game, err := h.store.GetGame(id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to get game")
+		return
+	}
+	if game == nil {
+		writeError(w, http.StatusNotFound, "Game not found")
+		return
+	}
+
+	stats, err := h.store.GetGameStatistics(id)
+	if err != nil {
+		log.Printf("Failed to calculate statistics for game %d: %v", id, err)
+		writeError(w, http.StatusInternalServerError, "Failed to calculate statistics")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, stats)
+}

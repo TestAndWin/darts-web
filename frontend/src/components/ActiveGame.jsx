@@ -6,6 +6,7 @@ export default function ActiveGame({ gameId, onExit }) {
   const [users, setUsers] = useState({});
   const [multiplier, setMultiplier] = useState(1);
   const [sending, setSending] = useState(false);
+  const [gameStats, setGameStats] = useState(null);
 
   useEffect(() => {
     // Initial Load
@@ -17,6 +18,13 @@ export default function ActiveGame({ gameId, onExit }) {
     const interval = setInterval(loadGame, 3000);
     return () => clearInterval(interval);
   }, [gameId]); // Refresh if ID changes
+
+  useEffect(() => {
+    // Load statistics when game finishes
+    if (game?.status === 'FINISHED' && !gameStats) {
+      loadGameStatistics();
+    }
+  }, [game?.status]);
 
   const loadUsers = async () => {
     const u = await api.getUsers();
@@ -30,6 +38,15 @@ export default function ActiveGame({ gameId, onExit }) {
       const g = await api.getGame(gameId);
       setGame(g);
     } catch (e) { console.error(e); }
+  }
+
+  const loadGameStatistics = async () => {
+    try {
+      const stats = await api.getGameStatistics(gameId);
+      setGameStats(stats);
+    } catch (e) {
+      console.error('Failed to load statistics:', e);
+    }
   }
 
   const handleThrow = async (point, forcedMultiplier = null) => {
@@ -71,10 +88,95 @@ export default function ActiveGame({ gameId, onExit }) {
 
   if (game.status === 'FINISHED') {
     return (
-      <div className="max-w-xl mx-auto p-8 bg-white rounded-xl shadow-lg text-center">
-        <h2 className="text-3xl font-bold text-darts-gold mb-4">Game Finished!</h2>
-        <p className="text-2xl mb-8">Winner: {users[game.winner_id] || 'Unknown'}</p>
-        <button onClick={onExit} className="px-6 py-3 bg-darts-blue text-white rounded-lg">Back to Menu</button>
+      <div className="max-w-4xl mx-auto p-8">
+        {/* Winner Announcement */}
+        <div className="bg-gradient-to-r from-darts-gold to-yellow-500 rounded-xl p-8 text-center mb-8 shadow-2xl">
+          <h2 className="text-4xl font-black text-slate-900 mb-2">Game Over!</h2>
+          <p className="text-3xl font-bold text-slate-800">
+            {users[game.winner_id]} Wins!
+          </p>
+        </div>
+
+        {/* Statistics Section */}
+        {gameStats ? (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h3 className="text-2xl font-bold text-slate-800 mb-6 text-center">
+              Game Statistics
+            </h3>
+
+            {/* Overall Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {gameStats.players.map(player => (
+                <div key={player.user_id} className="border-2 border-slate-200 rounded-lg p-6">
+                  <h4 className="text-xl font-bold text-slate-700 mb-4">
+                    {player.user_name}
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">3-Dart Average:</span>
+                      <span className="font-bold text-darts-blue">
+                        {player.overall_stats.average_3_dart.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Total Points:</span>
+                      <span className="font-bold">{player.overall_stats.total_points}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Total Throws:</span>
+                      <span className="font-bold">{player.overall_stats.total_throws}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Per-Set Breakdown (if more than 1 set) */}
+            {gameStats.total_sets_played > 1 && (
+              <div>
+                <h4 className="text-lg font-bold text-slate-700 mb-4">Set-by-Set Breakdown</h4>
+                {gameStats.players.map(player => (
+                  <div key={player.user_id} className="mb-6">
+                    <h5 className="font-semibold text-slate-600 mb-2">{player.user_name}</h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {player.set_stats.map(set => (
+                        <div
+                          key={set.set_number}
+                          className={`p-4 rounded-lg border-2 ${
+                            set.won_set
+                              ? 'bg-green-50 border-green-300'
+                              : 'bg-slate-50 border-slate-200'
+                          }`}
+                        >
+                          <div className="text-sm font-bold text-slate-700 mb-2">
+                            Set {set.set_number} {set.won_set && '✓'}
+                          </div>
+                          <div className="text-xs space-y-1">
+                            <div>Avg: {set.average_3_dart.toFixed(1)}</div>
+                            <div>{set.total_points} pts</div>
+                            <div>{set.total_throws} throws</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center text-slate-500 mb-6">Loading statistics...</div>
+        )}
+
+        {/* Back Button */}
+        <div className="text-center">
+          <button
+            onClick={onExit}
+            className="px-8 py-4 bg-darts-blue text-white text-lg font-bold rounded-lg hover:bg-blue-700 transition shadow-lg"
+          >
+            Back to Menu
+          </button>
+        </div>
       </div>
     )
   }
@@ -83,8 +185,13 @@ export default function ActiveGame({ gameId, onExit }) {
     <div className="max-w-4xl mx-auto">
       {/* Header Info */}
       <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
-        <div className="text-slate-500 font-semibold">
-          Matches (Best of {game.settings.best_of_sets})
+        <div className="flex flex-col gap-1">
+          <div className="text-slate-500 font-semibold">
+            Matches (Best of {game.settings.best_of_sets})
+          </div>
+          <div className="text-sm text-slate-400">
+            {game.settings.double_out ? '🎯 Double Out enabled' : 'Double Out disabled'}
+          </div>
         </div>
         <button onClick={onExit} className="text-sm text-slate-400 hover:text-red-500">Exit Game</button>
       </div>

@@ -72,5 +72,11 @@ export const api = {
     const res = await fetch(`${API_URL}/users/${userId}/stats`);
     if (!res.ok) throw new Error('Failed to load stats');
     return res.json();
+  },
+
+  getGameStatistics: async (gameId) => {
+    const res = await fetch(`${API_URL}/games/${gameId}/statistics`);
+    if (!res.ok) throw new Error('Failed to load game statistics');
+    return res.json();
   }
 };
