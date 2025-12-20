@@ -23,3 +23,5 @@ darts-app*.tar
 .vscode/
 .idea/
 .DS_Store
+
+DEPLOYMENT.md

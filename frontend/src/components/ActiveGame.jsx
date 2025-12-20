@@ -182,73 +182,99 @@ export default function ActiveGame({ gameId, onExit }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto pb-2 px-2 landscape:md:flex landscape:md:h-screen landscape:md:gap-3 landscape:md:p-2 landscape:md:pb-2 landscape:md:mx-5 landscape:md:max-w-none">
       {/* Header Info */}
-      <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
+      <div className="flex justify-between items-center mb-3 sm:mb-6 bg-white p-3 sm:p-4 rounded-xl shadow-sm landscape:md:hidden">
         <div className="flex flex-col gap-1">
-          <div className="text-slate-500 font-semibold">
+          <div className="text-sm sm:text-base text-slate-500 font-semibold">
             Matches (Best of {game.settings.best_of_sets})
           </div>
-          <div className="text-sm text-slate-400">
-            {game.settings.double_out ? '🎯 Double Out enabled' : 'Double Out disabled'}
+          <div className="text-xs sm:text-sm text-slate-400">
+            {game.settings.double_out ? '🎯 Double Out' : 'Straight Out'}
           </div>
         </div>
-        <button onClick={onExit} className="text-sm text-slate-400 hover:text-red-500">Exit Game</button>
+        <button onClick={onExit} className="text-xs sm:text-sm text-slate-400 hover:text-red-500">Exit Game</button>
       </div>
 
-      {/* Scoreboard */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      {/* Left Panel: Player Scores */}
+      <div className="landscape:md:w-[30%] landscape:md:flex landscape:md:flex-col landscape:md:overflow-y-auto">
+        {/* Compact header for landscape mode */}
+        <div className="hidden landscape:md:block mb-3">
+          <div className="bg-white p-3 rounded-xl shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <div className="text-sm font-semibold text-slate-500">
+                  Best of {game.settings.best_of_sets}
+                </div>
+                <div className="text-xs text-slate-400">
+                  {game.settings.double_out ? '🎯 Double Out' : 'Straight Out'}
+                </div>
+              </div>
+              <button
+                onClick={onExit}
+                className="text-xs text-slate-400 hover:text-red-500 px-3 py-1 rounded hover:bg-slate-100"
+              >
+                Exit Game
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Scoreboard */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-8 landscape:md:grid-cols-1 landscape:md:mb-0 landscape:md:gap-3">
         {game.players.map((p, idx) => {
           const isCurrent = idx === game.current_turn.player_index;
           return (
-            <div key={p.user_id} className={`relative p-6 rounded-2xl border-2 transition-all duration-300 ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg scale-105 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-xl font-bold truncate pr-4">{users[p.user_id]}</span>
-                <div className="text-sm opacity-80">Sets: {p.sets_won}</div>
+            <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
+              <div className="flex justify-between items-start mb-1 sm:mb-2">
+                <span className="text-base sm:text-xl font-bold truncate pr-2 sm:pr-4">{users[p.user_id]}</span>
+                <div className="text-xs sm:text-sm opacity-80">Sets: {p.sets_won}</div>
               </div>
-              <div className="text-6xl font-black mb-2 text-center">
+              <div className="text-4xl sm:text-6xl font-black mb-1 sm:mb-2 text-center">
                 {p.current_points}
               </div>
               {/* Last Throws visualization could go here */}
               {isCurrent && (
-                <div className="flex justify-center gap-1 mt-4">
+                <div className="flex justify-center gap-1 mt-2 sm:mt-4">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`w-3 h-3 rounded-full ${i < game.current_turn.throw_number ? 'bg-darts-gold' : 'bg-white/20'}`} />
+                    <div key={i} className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${i < game.current_turn.throw_number ? 'bg-darts-gold' : 'bg-white/20'}`} />
                   ))}
                 </div>
               )}
             </div>
           )
         })}
+        </div>
       </div>
 
       {/* Control Pad */}
-      <div className="bg-slate-800 p-4 rounded-t-3xl shadow-2xl fixed bottom-0 left-0 right-0 max-w-4xl mx-auto">
+      <div className="bg-slate-800 rounded-t-3xl shadow-2xl fixed bottom-0 left-0 right-0 landscape:md:relative landscape:md:w-[70%] landscape:md:rounded-3xl landscape:md:h-fit landscape:md:self-start">
+        <div className="max-w-4xl mx-auto px-2 py-3 sm:py-4 landscape:md:px-4 landscape:md:pt-3 landscape:md:pb-3 landscape:md:flex landscape:md:flex-col landscape:md:max-w-none">
         {/* Multipliers */}
-        <div className="flex gap-4 justify-center mb-4">
+        <div className="flex gap-3 sm:gap-4 justify-center mb-3 sm:mb-4 landscape:md:gap-8 landscape:md:mb-6">
           <button
             onClick={() => setMultiplier(multiplier === 2 ? 1 : 2)}
-            className={`px-6 py-2 rounded-full font-bold transition ${multiplier === 2 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
+            className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-sm sm:text-base transition landscape:md:px-16 landscape:md:py-5 landscape:md:text-2xl ${multiplier === 2 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
           >
             DOUBLE
           </button>
           <button
             onClick={() => setMultiplier(multiplier === 3 ? 1 : 3)}
-            className={`px-6 py-2 rounded-full font-bold transition ${multiplier === 3 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
+            className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-sm sm:text-base transition landscape:md:px-16 landscape:md:py-5 landscape:md:text-2xl ${multiplier === 3 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
           >
             TRIPLE
           </button>
         </div>
 
         {/* Numbers */}
-        <div className="grid grid-cols-5 gap-2 max-w-lg mx-auto">
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-2 landscape:md:gap-4">
           {/* 1-20 in standard layout or grid? Grid is easier for touch. */}
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(n => (
             <button
               key={n}
               onClick={() => handleThrow(n)}
               disabled={sending}
-              className="bg-slate-700 text-white font-bold text-xl py-4 rounded-lg active:scale-95 transition hover:bg-slate-600 disabled:opacity-50"
+              className="bg-slate-700 text-white font-bold text-lg sm:text-xl py-3 sm:py-4 rounded-lg active:scale-95 transition hover:bg-slate-600 disabled:opacity-50 landscape:md:text-4xl landscape:md:py-4 landscape:md:px-4"
             >
               {n}
             </button>
@@ -256,21 +282,22 @@ export default function ActiveGame({ gameId, onExit }) {
         </div>
 
         {/* Zero / Bull / Bulls Eye */}
-        <div className="grid grid-cols-3 gap-2 max-w-lg mx-auto mt-2">
-          <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold py-3 rounded-lg hover:bg-red-900/70">MISS</button>
-          <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold py-3 rounded-lg hover:bg-green-700/70">
-            <div className="text-xs opacity-75">25</div>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 landscape:md:gap-4 landscape:md:mt-6">
+          <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-red-900/70 landscape:md:text-2xl landscape:md:py-7">MISS</button>
+          <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-700/70 landscape:md:text-2xl landscape:md:py-7">
+            <div className="text-xs opacity-75 landscape:md:text-base">25</div>
             <div>BULL</div>
           </button>
-          <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30">
-            <div className="text-xs opacity-75">50</div>
+          <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30 landscape:md:text-2xl landscape:md:py-7">
+            <div className="text-xs opacity-75 landscape:md:text-base">50</div>
             <div>BULLS EYE</div>
           </button>
+        </div>
         </div>
       </div>
 
       {/* Spacer for fixed bottom */}
-      <div className="h-64"></div>
+      <div className="h-[420px] sm:h-80 landscape:md:hidden"></div>
     </div>
   )
 }
