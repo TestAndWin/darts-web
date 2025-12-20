@@ -176,7 +176,7 @@ export default function ActiveGame({ gameId, onExit }) {
   return (
     <div className="max-w-4xl mx-auto pb-2 px-2 landscape:md:flex landscape:md:h-screen landscape:md:gap-3 landscape:md:p-2 landscape:md:pb-2 landscape:md:mx-5 landscape:md:max-w-none">
       {/* Header Info */}
-      <div className="flex justify-between items-center mb-3 sm:mb-6 bg-white p-3 sm:p-4 rounded-xl shadow-sm landscape:md:hidden">
+      <div className="flex justify-between items-center mb-3 sm:mb-6 bg-white p-3 sm:p-4 rounded-xl shadow-sm w-full landscape:md:hidden">
         <div className="flex flex-col gap-1">
           <div className="text-sm sm:text-base text-slate-500 font-semibold">
             Matches (Best of {game.settings.best_of_sets})
@@ -213,7 +213,7 @@ export default function ActiveGame({ gameId, onExit }) {
         </div>
 
         {/* Scoreboard */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-8 landscape:md:grid-cols-1 landscape:md:mb-0 landscape:md:gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-8 landscape:md:grid-cols-1 landscape:md:mb-0 landscape:md:gap-3 w-full">
           {game.players.map((p, idx) => {
             const isCurrent = idx === game.current_turn.player_index;
             return (
@@ -240,7 +240,7 @@ export default function ActiveGame({ gameId, onExit }) {
       </div>
 
       {/* Control Pad */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center pointer-events-none landscape:md:static landscape:md:block landscape:md:w-[70%] landscape:md:h-fit landscape:md:self-start landscape:md:pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center pointer-events-none px-4 md:px-8 landscape:md:!px-0 landscape:md:static landscape:md:block landscape:md:w-[70%] landscape:md:h-fit landscape:md:self-start landscape:md:pointer-events-auto">
         <div className="w-full max-w-4xl px-2 pb-2 landscape:md:max-w-none landscape:md:px-0 landscape:md:pb-0">
           <div className="bg-slate-800 rounded-3xl shadow-2xl pointer-events-auto">
             <div className="px-2 py-3 sm:py-4 landscape:md:px-4 landscape:md:pt-3 landscape:md:pb-3 landscape:md:flex landscape:md:flex-col">
