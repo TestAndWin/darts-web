@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 export default function ActiveGame({ gameId, onExit }) {
@@ -8,46 +8,41 @@ export default function ActiveGame({ gameId, onExit }) {
   const [sending, setSending] = useState(false);
   const [gameStats, setGameStats] = useState(null);
 
-  useEffect(() => {
-    // Initial Load
-    loadGame();
-    loadUsers();
-
-    // Polling for simple live updates (reduced frequency for better performance)
-    // TODO: Replace with SSE or WebSocket for production
-    const interval = setInterval(loadGame, 3000);
-    return () => clearInterval(interval);
-  }, [gameId]); // Refresh if ID changes
-
-  useEffect(() => {
-    // Load statistics when game finishes
-    if (game?.status === 'FINISHED' && !gameStats) {
-      loadGameStatistics();
-    }
-  }, [game?.status]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     const u = await api.getUsers();
     const map = {};
     u.forEach(user => map[user.id] = user.name);
     setUsers(map);
-  }
+  }, []);
 
-  const loadGame = async () => {
+  const loadGame = useCallback(async () => {
     try {
       const g = await api.getGame(gameId);
       setGame(g);
     } catch (e) { console.error(e); }
-  }
+  }, [gameId]);
 
-  const loadGameStatistics = async () => {
+  const loadGameStatistics = useCallback(async () => {
     try {
       const stats = await api.getGameStatistics(gameId);
       setGameStats(stats);
     } catch (e) {
       console.error('Failed to load statistics:', e);
     }
-  }
+  }, [gameId]);
+
+  useEffect(() => {
+    // Initial Load
+    loadGame();
+    loadUsers();
+  }, [loadGame, loadUsers]);
+
+  useEffect(() => {
+    // Load statistics when game finishes
+    if (game?.status === 'FINISHED' && !gameStats) {
+      loadGameStatistics();
+    }
+  }, [game?.status, gameStats, loadGameStatistics]);
 
   const handleThrow = async (point, forcedMultiplier = null) => {
     if (sending || !game) return;
@@ -83,8 +78,6 @@ export default function ActiveGame({ gameId, onExit }) {
   }
 
   if (!game) return <div className="p-8 text-center">Loading game...</div>;
-
-  const currentPlayer = game.players[game.current_turn.player_index];
 
   if (game.status === 'FINISHED') {
     return (
@@ -142,11 +135,10 @@ export default function ActiveGame({ gameId, onExit }) {
                       {player.set_stats.map(set => (
                         <div
                           key={set.set_number}
-                          className={`p-4 rounded-lg border-2 ${
-                            set.won_set
+                          className={`p-4 rounded-lg border-2 ${set.won_set
                               ? 'bg-green-50 border-green-300'
                               : 'bg-slate-50 border-slate-200'
-                          }`}
+                            }`}
                         >
                           <div className="text-sm font-bold text-slate-700 mb-2">
                             Set {set.set_number} {set.won_set && '✓'}
@@ -222,77 +214,81 @@ export default function ActiveGame({ gameId, onExit }) {
 
         {/* Scoreboard */}
         <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-8 landscape:md:grid-cols-1 landscape:md:mb-0 landscape:md:gap-3">
-        {game.players.map((p, idx) => {
-          const isCurrent = idx === game.current_turn.player_index;
-          return (
-            <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
-              <div className="flex justify-between items-start mb-1 sm:mb-2">
-                <span className="text-base sm:text-xl font-bold truncate pr-2 sm:pr-4">{users[p.user_id]}</span>
-                <div className="text-xs sm:text-sm opacity-80">Sets: {p.sets_won}</div>
-              </div>
-              <div className="text-4xl sm:text-6xl font-black mb-1 sm:mb-2 text-center">
-                {p.current_points}
-              </div>
-              {/* Last Throws visualization could go here */}
-              {isCurrent && (
-                <div className="flex justify-center gap-1 mt-2 sm:mt-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${i < game.current_turn.throw_number ? 'bg-darts-gold' : 'bg-white/20'}`} />
-                  ))}
+          {game.players.map((p, idx) => {
+            const isCurrent = idx === game.current_turn.player_index;
+            return (
+              <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
+                <div className="flex justify-between items-start mb-1 sm:mb-2">
+                  <span className="text-base sm:text-xl font-bold truncate pr-2 sm:pr-4">{users[p.user_id]}</span>
+                  <div className="text-xs sm:text-sm opacity-80">Sets: {p.sets_won}</div>
                 </div>
-              )}
-            </div>
-          )
-        })}
+                <div className="text-4xl sm:text-6xl font-black mb-1 sm:mb-2 text-center">
+                  {p.current_points}
+                </div>
+                {/* Last Throws visualization could go here */}
+                {isCurrent && (
+                  <div className="flex justify-center gap-1 mt-2 sm:mt-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${i < game.current_turn.throw_number ? 'bg-darts-gold' : 'bg-white/20'}`} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 
       {/* Control Pad */}
-      <div className="bg-slate-800 rounded-t-3xl shadow-2xl fixed bottom-0 left-0 right-0 landscape:md:relative landscape:md:w-[70%] landscape:md:rounded-3xl landscape:md:h-fit landscape:md:self-start">
-        <div className="max-w-4xl mx-auto px-2 py-3 sm:py-4 landscape:md:px-4 landscape:md:pt-3 landscape:md:pb-3 landscape:md:flex landscape:md:flex-col landscape:md:max-w-none">
-        {/* Multipliers */}
-        <div className="flex gap-3 sm:gap-4 justify-center mb-3 sm:mb-4 landscape:md:gap-8 landscape:md:mb-6">
-          <button
-            onClick={() => setMultiplier(multiplier === 2 ? 1 : 2)}
-            className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-sm sm:text-base transition landscape:md:px-16 landscape:md:py-5 landscape:md:text-2xl ${multiplier === 2 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
-          >
-            DOUBLE
-          </button>
-          <button
-            onClick={() => setMultiplier(multiplier === 3 ? 1 : 3)}
-            className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-sm sm:text-base transition landscape:md:px-16 landscape:md:py-5 landscape:md:text-2xl ${multiplier === 3 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
-          >
-            TRIPLE
-          </button>
-        </div>
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center pointer-events-none landscape:md:static landscape:md:block landscape:md:w-[70%] landscape:md:h-fit landscape:md:self-start landscape:md:pointer-events-auto">
+        <div className="w-full max-w-4xl px-2 pb-2 landscape:md:max-w-none landscape:md:px-0 landscape:md:pb-0">
+          <div className="bg-slate-800 rounded-3xl shadow-2xl pointer-events-auto">
+            <div className="px-2 py-3 sm:py-4 landscape:md:px-4 landscape:md:pt-3 landscape:md:pb-3 landscape:md:flex landscape:md:flex-col">
+              {/* Multipliers */}
+              <div className="flex gap-3 sm:gap-4 justify-center mb-3 sm:mb-4 landscape:md:gap-8 landscape:md:mb-6">
+                <button
+                  onClick={() => setMultiplier(multiplier === 2 ? 1 : 2)}
+                  className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-sm sm:text-base transition landscape:md:px-16 landscape:md:py-5 landscape:md:text-2xl ${multiplier === 2 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
+                >
+                  DOUBLE
+                </button>
+                <button
+                  onClick={() => setMultiplier(multiplier === 3 ? 1 : 3)}
+                  className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-sm sm:text-base transition landscape:md:px-16 landscape:md:py-5 landscape:md:text-2xl ${multiplier === 3 ? 'bg-darts-gold text-slate-900' : 'bg-slate-700 text-slate-300'}`}
+                >
+                  TRIPLE
+                </button>
+              </div>
 
-        {/* Numbers */}
-        <div className="grid grid-cols-5 gap-1.5 sm:gap-2 landscape:md:gap-4">
-          {/* 1-20 in standard layout or grid? Grid is easier for touch. */}
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(n => (
-            <button
-              key={n}
-              onClick={() => handleThrow(n)}
-              disabled={sending}
-              className="bg-slate-700 text-white font-bold text-lg sm:text-xl py-3 sm:py-4 rounded-lg active:scale-95 transition hover:bg-slate-600 disabled:opacity-50 landscape:md:text-4xl landscape:md:py-4 landscape:md:px-4"
-            >
-              {n}
-            </button>
-          ))}
-        </div>
+              {/* Numbers */}
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2 landscape:md:gap-4">
+                {/* 1-20 in standard layout or grid? Grid is easier for touch. */}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => handleThrow(n)}
+                    disabled={sending}
+                    className="bg-slate-700 text-white font-bold text-lg sm:text-xl py-3 sm:py-4 rounded-lg active:scale-95 transition hover:bg-slate-600 disabled:opacity-50 landscape:md:text-4xl landscape:md:py-4 landscape:md:px-4"
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
 
-        {/* Zero / Bull / Bulls Eye */}
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 landscape:md:gap-4 landscape:md:mt-6">
-          <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-red-900/70 landscape:md:text-2xl landscape:md:py-7">MISS</button>
-          <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-700/70 landscape:md:text-2xl landscape:md:py-7">
-            <div className="text-xs opacity-75 landscape:md:text-base">25</div>
-            <div>BULL</div>
-          </button>
-          <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30 landscape:md:text-2xl landscape:md:py-7">
-            <div className="text-xs opacity-75 landscape:md:text-base">50</div>
-            <div>BULLS EYE</div>
-          </button>
-        </div>
+              {/* Zero / Bull / Bulls Eye */}
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 landscape:md:gap-4 landscape:md:mt-6">
+                <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-red-900/70 landscape:md:text-2xl landscape:md:py-7">MISS</button>
+                <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-700/70 landscape:md:text-2xl landscape:md:py-7">
+                  <div className="text-xs opacity-75 landscape:md:text-base">25</div>
+                  <div>BULL</div>
+                </button>
+                <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30 landscape:md:text-2xl landscape:md:py-7">
+                  <div className="text-xs opacity-75 landscape:md:text-base">50</div>
+                  <div>BULLS EYE</div>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
