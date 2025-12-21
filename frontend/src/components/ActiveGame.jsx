@@ -174,7 +174,7 @@ export default function ActiveGame({ gameId, onExit }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-2 px-2 landscape:md:flex landscape:md:h-screen landscape:md:gap-3 landscape:md:p-2 landscape:md:pb-2 landscape:md:mx-5 landscape:md:max-w-none">
+    <div className="max-w-4xl mx-auto pb-2 px-2 landscape:md:flex landscape:md:h-[calc(100vh-120px)] landscape:md:gap-3 landscape:md:p-2 landscape:md:pb-2 landscape:md:mx-5 landscape:md:max-w-none">
       {/* Header Info */}
       <div className="flex justify-between items-center mb-3 sm:mb-6 bg-white p-3 sm:p-4 rounded-xl shadow-sm w-full landscape:md:hidden">
         <div className="flex flex-col gap-1">
@@ -217,7 +217,7 @@ export default function ActiveGame({ gameId, onExit }) {
           {game.players.map((p, idx) => {
             const isCurrent = idx === game.current_turn.player_index;
             return (
-              <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
+              <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 landscape:md:h-[120px] ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
                 <div className="flex justify-between items-start mb-1 sm:mb-2">
                   <span className="text-base sm:text-xl font-bold truncate pr-2 sm:pr-4">{users[p.user_id]}</span>
                   <div className="text-xs sm:text-sm opacity-80">Sets: {p.sets_won}</div>

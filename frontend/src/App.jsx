@@ -35,7 +35,7 @@ function App() {
         </nav>
 
         {/* Main Content */}
-        <main className="p-4 md:p-8">
+        <main className="p-4 md:p-5">
         {view === 'home' && (
           <div className="max-w-4xl mx-auto mt-20 text-center">
             <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
