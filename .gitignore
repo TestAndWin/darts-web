@@ -15,6 +15,9 @@ frontend/dist/
 # Docker exports
 darts-app*.tar
 
+# Deployment logs
+logs/
+
 # Environment files
 .env
 .env.local
