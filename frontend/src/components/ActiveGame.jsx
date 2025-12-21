@@ -277,12 +277,12 @@ export default function ActiveGame({ gameId, onExit }) {
 
               {/* Zero / Bull / Bulls Eye */}
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 landscape:md:gap-4 landscape:md:mt-6">
-                <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-red-900/70 landscape:md:text-2xl landscape:md:py-7">MISS</button>
-                <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-700/70 landscape:md:text-2xl landscape:md:py-7">
+                <button onClick={() => handleThrow(0)} className="bg-red-900/50 text-red-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-red-900/70 landscape:md:text-2xl landscape:md:py-4">MISS</button>
+                <button onClick={() => handleThrow(25, 1)} className="bg-green-700/50 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-700/70 landscape:md:text-2xl landscape:md:py-4">
                   <div className="text-xs opacity-75 landscape:md:text-base">25</div>
                   <div>BULL</div>
                 </button>
-                <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30 landscape:md:text-2xl landscape:md:py-7">
+                <button onClick={() => handleThrow(25, 2)} className="bg-green-900/70 text-green-200 font-bold text-sm sm:text-base py-2 sm:py-3 rounded-lg hover:bg-green-900 border-2 border-green-400/30 landscape:md:text-2xl landscape:md:py-4">
                   <div className="text-xs opacity-75 landscape:md:text-base">50</div>
                   <div>BULLS EYE</div>
                 </button>
