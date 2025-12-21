@@ -1,4 +1,4 @@
-.PHONY: help build test test-verbose test-coverage build-frontend build-backend clean run-backend run-frontend version deps export
+.PHONY: help build test test-verbose test-coverage clean run-backend run-frontend version deps export
 
 # Read version from VERSION file
 VERSION := $(shell cat VERSION)
@@ -13,8 +13,6 @@ help:
 	@echo "  make test-verbose    - Run tests with verbose output"
 	@echo "  make run-backend     - Run backend server locally"
 	@echo "  make run-frontend    - Run frontend dev server"
-	@echo "  make build-frontend  - Build frontend for production"
-	@echo "  make build-backend   - Build backend binary"
 	@echo "  make clean           - Remove build artifacts"
 	@echo "  make version         - Show current version"
 	@echo ""
@@ -35,16 +33,6 @@ test-verbose:
 test-coverage:
 	@echo "Running Go tests with coverage..."
 	go test -cover ./...
-
-# Build backend locally
-build-backend:
-	@echo "Building backend..."
-	CGO_ENABLED=1 go build -o darts-server cmd/server/main.go
-
-# Build frontend locally
-build-frontend:
-	@echo "Building frontend..."
-	cd frontend && npm install && npm run build
 
 # Run backend locally
 run-backend:
@@ -86,7 +74,7 @@ clean:
 	rm -f darts-server
 	rm -f darts-app-*.tar
 	rm -rf frontend/dist
-	rm -f frontend/node_modules/.vite
+	rm -rf frontend/node_modules/.vite
 	@echo "✓ Clean complete"
 
 # Install dependencies
