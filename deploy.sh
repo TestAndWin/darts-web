@@ -40,12 +40,12 @@ read -p "Continue? (y/n) " -n 1 -r
 echo
 [[ ! $REPLY =~ ^[Yy]$ ]] && exit 0
 
-# Update VERSION file
-echo "$NEW_VERSION" > VERSION
-
-# Git pull
+# Git pull FIRST (before changing any files)
 echo "→ Pulling latest changes..."
 git pull --rebase origin main
+
+# Update VERSION file
+echo "$NEW_VERSION" > VERSION
 
 # Build Docker image
 echo "→ Building Docker image..."
