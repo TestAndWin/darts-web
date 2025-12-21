@@ -7,7 +7,7 @@
 set -euo pipefail
 
 # Configuration
-HELM_RELEASE="darts-web"
+HELM_RELEASE="darts"
 HELM_CHART="charts/darts-web"
 VALUES_FILE="charts/darts-web/values.yaml"
 
