@@ -81,6 +81,10 @@ echo "→ Checking pod status..."
 sleep 3
 kubectl get pods -l app.kubernetes.io/name=darts-web
 
+# Cleanup tar file
+echo "→ Cleaning up..."
+rm -f "darts-app-${NEW_VERSION}.tar"
+
 # Commit changes
 echo "→ Committing version changes..."
 git add VERSION "$VALUES_FILE"
