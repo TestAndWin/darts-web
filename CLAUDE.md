@@ -108,11 +108,18 @@ kubectl apply -f k8s/darts-app.yaml
 
 ### Versioning
 
-The application version is managed via the `VERSION` file (not `package.json`). To bump the version:
+The application version is managed via Git tags. To release a new version:
 
 ```bash
-echo "1.0.5" > VERSION
-make export
+# Create and push a tag
+git tag v1.0.15 -m "Release 1.0.15"
+git push origin v1.0.15
+
+# On the server, deploy the latest tag
+./deploy.sh
+
+# Or deploy a specific tag
+./deploy.sh v1.0.15
 ```
 
 ## Architecture Overview

@@ -46,12 +46,18 @@ make export
 
 This command:
 - Builds a multi-architecture Docker image (linux/amd64, linux/arm64)
-- Tags it with the version from the `VERSION` file
+- Tags it with the version from the latest git tag
 - Exports it as `darts-app-{VERSION}.tar`
 
-### Update Version
+### Versioning
+
+The application version is managed via Git tags:
 
 ```bash
-echo "1.0.5" > VERSION
+# Create and push a tag
+git tag v1.0.15 -m "Release 1.0.15"
+git push origin v1.0.15
+
+# Build with the new version
 make export
 ```

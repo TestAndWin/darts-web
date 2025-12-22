@@ -1,7 +1,7 @@
 .PHONY: help build test test-verbose test-coverage clean run-backend run-frontend version deps export
 
-# Read version from VERSION file
-VERSION := $(shell cat VERSION)
+# Read version from git tags (fallback to "dev" if no tags exist)
+VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "dev")
 
 # Default target
 help:
