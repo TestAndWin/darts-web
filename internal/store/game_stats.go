@@ -48,7 +48,7 @@ func (s *Store) GetGameStatistics(gameID int) (*GameStatistics, error) {
 
 	// Fetch all throws for this game, ordered by creation time
 	rows, err := s.db.Query(`
-		SELECT id, game_id, user_id, points, multiplier, score_after, created_at
+		SELECT id, game_id, user_id, points, multiplier, score_after, valid, created_at
 		FROM throws
 		WHERE game_id = ?
 		ORDER BY created_at ASC
@@ -61,9 +61,11 @@ func (s *Store) GetGameStatistics(gameID int) (*GameStatistics, error) {
 	var throws []models.Throw
 	for rows.Next() {
 		var t models.Throw
-		if err := rows.Scan(&t.ID, &t.GameID, &t.UserID, &t.Points, &t.Multiplier, &t.ScoreAfter, &t.CreatedAt); err != nil {
+		var validInt int
+		if err := rows.Scan(&t.ID, &t.GameID, &t.UserID, &t.Points, &t.Multiplier, &t.ScoreAfter, &validInt, &t.CreatedAt); err != nil {
 			return nil, err
 		}
+		t.Valid = validInt == 1
 		throws = append(throws, t)
 	}
 	if err := rows.Err(); err != nil {
@@ -219,9 +221,11 @@ func calculateSetPlayerStats(setThrows []models.Throw, totalPoints int) map[int]
 	for _, throw := range setThrows {
 		s := stats[throw.UserID]
 		s.totalThrows++
-		// Include all throws (even busts) in the point calculation
-		// Points scored = points * multiplier
-		s.totalPoints += throw.Points * throw.Multiplier
+		// Only include valid throws in point calculation
+		// Bust throws count toward throw total but not points
+		if throw.Valid {
+			s.totalPoints += throw.Points * throw.Multiplier
+		}
 		stats[throw.UserID] = s
 	}
 

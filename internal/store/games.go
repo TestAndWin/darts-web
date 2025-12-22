@@ -95,8 +95,12 @@ func (s *Store) GetGame(id int) (*models.Game, error) {
 }
 
 func (s *Store) SaveThrow(t *models.Throw) error {
-	_, err := s.db.Exec(`INSERT INTO throws (game_id, user_id, points, multiplier, score_after) VALUES (?, ?, ?, ?, ?)`,
-		t.GameID, t.UserID, t.Points, t.Multiplier, t.ScoreAfter)
+	validInt := 0
+	if t.Valid {
+		validInt = 1
+	}
+	_, err := s.db.Exec(`INSERT INTO throws (game_id, user_id, points, multiplier, score_after, valid) VALUES (?, ?, ?, ?, ?, ?)`,
+		t.GameID, t.UserID, t.Points, t.Multiplier, t.ScoreAfter, validInt)
 	return err
 }
 

@@ -24,8 +24,11 @@ func (s *Store) GetUserStats(userID int) (map[string]interface{}, error) {
 	// Average calculation: proper 3-dart average
 	var totalPoints, totalThrows int
 	// Only count throws from FINISHED games
+	// Only count points from VALID throws (not busts), but count ALL throws
 	err = s.db.QueryRow(`
-		SELECT COALESCE(SUM(t.points * t.multiplier), 0), COUNT(*)
+		SELECT
+			COALESCE(SUM(CASE WHEN t.valid = 1 THEN t.points * t.multiplier ELSE 0 END), 0) as total_points,
+			COUNT(*) as total_throws
 		FROM throws t
 		JOIN games g ON t.game_id = g.id
 		WHERE t.user_id = ? AND g.status = ?`, userID, models.GameStatusFinished).Scan(&totalPoints, &totalThrows)
