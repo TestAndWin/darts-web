@@ -62,9 +62,10 @@ echo
 
 # Build Docker image
 echo "→ Building Docker image..."
-docker build --platform linux/amd64 \
+docker buildx build --platform linux/amd64 \
 	-t darts-app:${DOCKER_VERSION} \
-	-t darts-app:latest .
+	-t darts-app:latest \
+	--load .
 echo "✓ Image tagged as: darts-app:${DOCKER_VERSION} and darts-app:latest"
 
 # Export to tar
