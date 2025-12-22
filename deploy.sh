@@ -11,7 +11,6 @@ set -euo pipefail
 # Configuration
 HELM_RELEASE="darts"
 HELM_CHART="charts/darts-web"
-VALUES_FILE="charts/darts-web/values.yaml"
 
 # Parse arguments
 if [[ $# -eq 1 ]]; then
@@ -76,21 +75,16 @@ docker save "darts-app:${DOCKER_VERSION}" -o "darts-app-${DOCKER_VERSION}.tar"
 echo "→ Loading into Minikube..."
 minikube image load "darts-app-${DOCKER_VERSION}.tar"
 
-# Update Helm values
-echo "→ Updating Helm values..."
-if command -v yq &> /dev/null; then
-    yq eval ".image.tag = \"$DOCKER_VERSION\"" -i "$VALUES_FILE"
-else
-    sed -i.bak "s/tag: \".*\"/tag: \"$DOCKER_VERSION\"/" "$VALUES_FILE"
-    rm -f "${VALUES_FILE}.bak"
-fi
-
 # Deploy with Helm
 echo "→ Deploying with Helm..."
 if helm status "$HELM_RELEASE" &> /dev/null; then
-    helm upgrade "$HELM_RELEASE" "$HELM_CHART" --wait --timeout 5m
+    helm upgrade "$HELM_RELEASE" "$HELM_CHART" \
+        --set image.tag="$DOCKER_VERSION" \
+        --wait --timeout 5m
 else
-    helm install "$HELM_RELEASE" "$HELM_CHART" --wait --timeout 5m
+    helm install "$HELM_RELEASE" "$HELM_CHART" \
+        --set image.tag="$DOCKER_VERSION" \
+        --wait --timeout 5m
 fi
 
 # Verify pods
@@ -101,15 +95,6 @@ kubectl get pods -l app.kubernetes.io/name=darts-web
 # Cleanup tar file
 echo "→ Cleaning up..."
 rm -f "darts-app-${DOCKER_VERSION}.tar"
-
-# Commit Helm values changes
-echo "→ Committing Helm values update..."
-git add "$VALUES_FILE"
-git commit -m "chore: deploy version $VERSION" || echo "No changes to commit"
-
-# Push to remote
-echo "→ Pushing to remote..."
-git push origin main
 
 echo ""
 echo "✓ Deployment completed: $VERSION"
