@@ -218,21 +218,22 @@ export default function ActiveGame({ gameId, onExit }) {
             const isCurrent = idx === game.current_turn.player_index;
             return (
               <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 landscape:md:h-[120px] ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
-                <div className="flex justify-between items-start mb-1 sm:mb-2">
-                  <span className="text-base sm:text-xl font-bold truncate pr-2 sm:pr-4">{users[p.user_id]}</span>
+                <div className="flex justify-between items-center mb-1 sm:mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base sm:text-xl font-bold truncate">{users[p.user_id]}</span>
+                    {isCurrent && (
+                      <div className="flex gap-1">
+                        {[...Array(3)].map((_, i) => (
+                          <div key={i} className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${i < game.current_turn.throw_number ? 'bg-darts-gold' : 'bg-white/20'}`} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div className="text-xs sm:text-sm opacity-80">Sets: {p.sets_won}</div>
                 </div>
                 <div className="text-4xl sm:text-6xl font-black mb-1 sm:mb-2 text-center">
                   {p.current_points}
                 </div>
-                {/* Last Throws visualization could go here */}
-                {isCurrent && (
-                  <div className="flex justify-center gap-1 mt-2 sm:mt-4">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${i < game.current_turn.throw_number ? 'bg-darts-gold' : 'bg-white/20'}`} />
-                    ))}
-                  </div>
-                )}
               </div>
             )
           })}
