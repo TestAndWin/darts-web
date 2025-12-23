@@ -28,3 +28,8 @@ logs/
 .DS_Store
 
 DEPLOYMENT.md
+
+# semantic-release
+node_modules/
+package-lock.json
+CHANGELOG.md

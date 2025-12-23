@@ -122,6 +122,51 @@ git push origin v1.0.15
 ./deploy.sh v1.0.15
 ```
 
+### Automated Versioning with semantic-release
+
+The project uses semantic-release for automatic versioning:
+
+**Workflow:**
+1. Push commits to `main` branch
+2. GitHub Actions analyzes commits
+3. For release-worthy commits (feat:, fix:, etc.):
+   - Determines next version number
+   - Creates git tag (e.g., `v1.0.18`)
+   - Generates CHANGELOG.md
+   - Creates GitHub Release with release notes
+
+**Commit Message Conventions (recommended):**
+
+```bash
+# Features (minor version bump)
+git commit -m "feat: add player statistics export"
+
+# Bug fixes (patch version bump)
+git commit -m "fix: correct bust throw calculation"
+
+# Breaking changes (major version bump)
+git commit -m "feat!: redesign API endpoints
+
+BREAKING CHANGE: API endpoints now use /v2/ prefix"
+
+# No release
+git commit -m "docs: update deployment instructions"
+git commit -m "chore: update dependencies"
+```
+
+**Important:** Commits without semantic prefix still work, they just don't trigger automatic releases.
+
+**View releases:**
+- GitHub: https://github.com/TestAndWin/darts-web/releases
+- CHANGELOG.md in repository root
+
+**Deployment remains manual:**
+1. Push commits to main → semantic-release creates tag automatically
+2. On server: `./deploy.sh` (deploys latest tag)
+3. Or specific version: `./deploy.sh v1.0.18`
+
+**Note:** Manual tags still work for special cases.
+
 ## Architecture Overview
 
 ### Backend Layered Architecture

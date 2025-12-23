@@ -1,5 +1,7 @@
 # Darts Web
 
+[![Latest Release](https://img.shields.io/github/v/release/TestAndWin/darts-web)](https://github.com/TestAndWin/darts-web/releases)
+
 A modern web-based darts scoring system with real-time game tracking and player statistics.
 
 ## Features
@@ -51,13 +53,20 @@ This command:
 
 ### Versioning
 
-The application version is managed via Git tags:
+Versions are managed automatically via [semantic-release](https://github.com/semantic-release/semantic-release).
 
+**For Developers:**
+- Push to `main` branch
+- Use semantic commit messages (recommended): `feat:`, `fix:`, etc.
+- Releases are created automatically
+
+**For Deployment:**
 ```bash
-# Create and push a tag
-git tag v1.0.15 -m "Release 1.0.15"
-git push origin v1.0.15
+# Deploy latest version
+./deploy.sh
 
-# Build with the new version
-make export
+# Deploy specific version
+./deploy.sh v1.0.18
 ```
+
+See [CHANGELOG.md](./CHANGELOG.md) for release history and [CONTRIBUTING.md](./CONTRIBUTING.md) for commit conventions.
