@@ -21,6 +21,9 @@ make help
 # Install dependencies
 make deps
 
+# Update all Go and JS dependencies
+make update-deps
+
 # Run tests
 make test
 make test-verbose

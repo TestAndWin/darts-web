@@ -1,4 +1,4 @@
-.PHONY: help build test test-verbose test-coverage clean run-backend run-frontend version deps export
+.PHONY: help build test test-verbose test-coverage clean run-backend run-frontend version deps update-deps export
 
 # Read version from git tags (fallback to "dev" if no tags exist)
 VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "dev")
@@ -13,6 +13,8 @@ help:
 	@echo "  make test-verbose    - Run tests with verbose output"
 	@echo "  make run-backend     - Run backend server locally"
 	@echo "  make run-frontend    - Run frontend dev server"
+	@echo "  make deps            - Install dependencies"
+	@echo "  make update-deps     - Update all Go and JS dependencies"
 	@echo "  make clean           - Remove build artifacts"
 	@echo "  make version         - Show current version"
 	@echo ""
@@ -85,3 +87,13 @@ deps:
 	@echo "Installing frontend dependencies..."
 	cd frontend && npm install
 	@echo "✓ Dependencies installed"
+
+# Update all dependencies
+update-deps:
+	@echo "Updating all dependencies..."
+	@echo "Updating Go dependencies..."
+	go get -u ./...
+	go mod tidy
+	@echo "Updating frontend dependencies..."
+	cd frontend && npm update
+	@echo "✓ All dependencies updated"
