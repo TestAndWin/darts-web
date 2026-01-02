@@ -1,8 +1,17 @@
 # Build Frontend
 FROM node:24.12.0-alpine AS frontend-builder
 WORKDIR /app/frontend
+
+# Configure npm for better network resilience
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-timeout 300000
+
 COPY frontend/package*.json ./
-RUN npm install
+# Use npm ci (faster and more reliable with package-lock.json)
+RUN npm ci --prefer-offline --no-audit
+
 COPY frontend/ ./
 # Set VITE_API_URL to use relative path that works with BASE_PATH
 ENV VITE_API_URL=/darts/api
