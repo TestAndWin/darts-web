@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://github.com/TestAndWin/darts-web/compare/v1.0.19...v1.1.0) (2026-01-02)
+
+
+### Features
+
+* Show values ([7d98b90](https://github.com/TestAndWin/darts-web/commit/7d98b904fec5f939e0c4e6497c3a740f66300a02))
+* updated libs ([8addfbf](https://github.com/TestAndWin/darts-web/commit/8addfbf34aee850489486c65747649c11cf4cada))
+
 ## [1.0.19](https://github.com/TestAndWin/darts-web/compare/v1.0.18...v1.0.19) (2025-12-23)
 
 
