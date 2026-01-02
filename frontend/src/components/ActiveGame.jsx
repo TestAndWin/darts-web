@@ -7,6 +7,7 @@ export default function ActiveGame({ gameId, onExit }) {
   const [multiplier, setMultiplier] = useState(1);
   const [sending, setSending] = useState(false);
   const [gameStats, setGameStats] = useState(null);
+  const [currentTurnThrows, setCurrentTurnThrows] = useState([]);
 
   const loadUsers = useCallback(async () => {
     const u = await api.getUsers();
@@ -44,6 +45,30 @@ export default function ActiveGame({ gameId, onExit }) {
     }
   }, [game?.status, gameStats, loadGameStatistics]);
 
+  useEffect(() => {
+    // Clear current turn throws when player changes
+    if (game?.current_turn) {
+      setCurrentTurnThrows([]);
+    }
+  }, [game?.current_turn?.player_index]);
+
+  const formatThrow = (throwData) => {
+    const { points, multiplier } = throwData;
+
+    // Miss
+    if (points === 0) return 'Miss';
+
+    // Bull
+    if (points === 25) {
+      return multiplier === 2 ? 'Bulls Eye' : 'Bull';
+    }
+
+    // Regular throws
+    if (multiplier === 3) return `T${points}`;
+    if (multiplier === 2) return `D${points}`;
+    return `${points}`;
+  };
+
   const handleThrow = async (point, forcedMultiplier = null) => {
     if (sending || !game) return;
 
@@ -67,6 +92,9 @@ export default function ActiveGame({ gameId, onExit }) {
       }
 
       await api.sendThrow(game.id, currentUserId, point, realMultiplier);
+
+      // Add throw to current turn throws
+      setCurrentTurnThrows(prev => [...prev, { points: point, multiplier: realMultiplier }]);
 
       setMultiplier(1); // Reset multiplier after throw
       loadGame(); // Refresh immediately
@@ -219,7 +247,7 @@ export default function ActiveGame({ gameId, onExit }) {
             return (
               <div key={p.user_id} className={`relative p-3 sm:p-6 rounded-2xl border-2 transition-all duration-300 landscape:md:p-4 landscape:md:h-[120px] ${isCurrent ? 'bg-darts-blue text-white border-darts-blue shadow-lg sm:scale-105 landscape:md:scale-100 z-10' : 'bg-white text-slate-800 border-slate-100'}`}>
                 <div className="flex justify-between items-center mb-1 sm:mb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="text-base sm:text-xl font-bold truncate">{users[p.user_id]}</span>
                     {isCurrent && (
                       <div className="flex gap-1">
@@ -228,8 +256,13 @@ export default function ActiveGame({ gameId, onExit }) {
                         ))}
                       </div>
                     )}
+                    {isCurrent && currentTurnThrows.length > 0 && (
+                      <span className="text-xs sm:text-sm opacity-80 ml-2">
+                        {currentTurnThrows.map(formatThrow).join(', ')}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs sm:text-sm opacity-80">Sets: {p.sets_won}</div>
+                  <div className="text-xs sm:text-sm opacity-80 ml-2 flex-shrink-0">Sets: {p.sets_won}</div>
                 </div>
                 <div className="text-4xl sm:text-6xl font-black mb-1 sm:mb-2 text-center">
                   {p.current_points}
