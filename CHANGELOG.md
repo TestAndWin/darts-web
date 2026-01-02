@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1](https://github.com/TestAndWin/darts-web/compare/v1.1.0...v1.1.1) (2026-01-02)
+
+
+### Bug Fixes
+
+* optimize Docker build for better network resilience ([9bd4507](https://github.com/TestAndWin/darts-web/commit/9bd450752a422f85290c12a44fe5dffe691b6607))
+
 ## [1.1.0](https://github.com/TestAndWin/darts-web/compare/v1.0.19...v1.1.0) (2026-01-02)
 
 
